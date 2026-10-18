@@ -1,0 +1,126 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: handlingar-alerts
+  namespace: observability
+  labels:
+    app.kubernetes.io/name: handlingar-alerts
+spec:
+  groups:
+    - name: handlingar.site
+      rules:
+        - alert: SiteDown
+          expr: probe_success{env=~"handlingar|tst|qat"} == 0
+          for: 3m
+          labels:
+            severity: critical
+          annotations:
+            summary: Site is down
+            description: The blackbox probe has no successful response for 3 minutes.
+        - alert: HighErrorRate
+          expr: |
+            (
+              sum by (service) (rate(traefik_service_requests_total{code=~"5.."}[5m]))
+              /
+              sum by (service) (rate(traefik_service_requests_total[5m]))
+            ) > 0.05
+            and
+            sum by (service) (rate(traefik_service_requests_total[5m])) > 0
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: High 5xx rate
+            description: More than 5 percent of responses are 5xx for 10 minutes.
+    - name: handlingar.sidekiq
+      rules:
+        - alert: SidekiqNotReady
+          expr: |
+            kube_deployment_spec_replicas{deployment="alaveteli-sidekiq"} > 0
+            and
+            kube_deployment_status_replicas_available{deployment="alaveteli-sidekiq"}
+            <
+            kube_deployment_spec_replicas{deployment="alaveteli-sidekiq"}
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: Sidekiq is not Ready
+            description: Queue depth is not exported yet. This alert uses desired replicas that are not available.
+    - name: handlingar.certificates
+      rules:
+        - alert: CertificateExpiry
+          expr: (certmanager_certificate_expiration_timestamp_seconds - time()) / 86400 < 7
+          for: 15m
+          labels:
+            severity: critical
+          annotations:
+            summary: Certificate expires within 7 days
+            description: A certificate has less than 7 days left.
+    - name: handlingar.disk
+      rules:
+        - alert: DiskFilling
+          expr: |
+            (
+              1 - (
+                node_filesystem_avail_bytes{fstype!~"tmpfs|overlay"}
+                /
+                node_filesystem_size_bytes{fstype!~"tmpfs|overlay"}
+              )
+            ) > 0.85
+            or
+            (
+              kubelet_volume_stats_used_bytes
+              /
+              kubelet_volume_stats_capacity_bytes
+            ) > 0.85
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: Disk or volume above 85 percent
+            description: A node filesystem or a volume is more than 85 percent full.
+    - name: handlingar.postgres
+      rules:
+        - alert: PostgresDown
+          expr: pg_up == 0
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: Postgres exporter cannot reach the database
+            description: pg_up has been 0 for 2 minutes.
+        - alert: PostgresConnectionsHigh
+          expr: |
+            sum by (server) (pg_stat_activity_count)
+            /
+            sum by (server) (pg_settings_max_connections)
+            > 0.9
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: Postgres connections above 90 percent
+            description: Active connections are above 90 percent of max_connections.
+    - name: handlingar.pods
+      rules:
+        - alert: PodCrashLoop
+          expr: increase(kube_pod_container_status_restarts_total[15m]) > 3
+          labels:
+            severity: warning
+          annotations:
+            summary: Pod restarted more than 3 times in 15 minutes
+            description: A container is crash-looping.
+    - name: handlingar.argocd
+      rules:
+        - alert: ArgoApplicationUnhealthy
+          expr: |
+            argocd_app_info{health_status="Degraded"} == 1
+            or
+            argocd_app_info{sync_status="OutOfSync"} == 1
+          for: 30m
+          labels:
+            severity: warning
+          annotations:
+            summary: Argo CD application is degraded or out of sync
+            description: The application has been Degraded or OutOfSync for 30 minutes.
