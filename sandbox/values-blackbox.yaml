@@ -1,0 +1,10 @@
+serviceMonitor:
+  targets:
+    - name: handlingar
+      url: http://alaveteli.handlingar.svc.cluster.local/
+      additionalMetricsRelabels:
+        env: handlingar
+    - name: tst
+      url: http://alaveteli.tst.svc.cluster.local/
+      additionalMetricsRelabels:
+        env: tst
