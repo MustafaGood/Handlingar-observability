@@ -8,10 +8,10 @@ TEXT = (
 ).read_text(encoding="utf-8")
 
 REQUIRED = (
-    "## R1 — Site down",
-    "## R2 — Sidekiq queue growing",
-    "## R3 — Certificate expiring",
-    "## R4 — Disk full",
+    "## R1: Site down",
+    "## R2: Sidekiq queue growing",
+    "## R3: Certificate expiring",
+    "## R4: Disk full",
     "Prerequisites:",
     "How to verify it worked:",
     "How to undo:",

@@ -259,7 +259,7 @@ spec:
           port: 80
 ---
 # Platform namespaces (traefik, cert-manager, argocd, kube-system) usually have
-# no default-deny yet. Do NOT apply a NetworkPolicy with podSelector: {} there —
+# no default-deny yet. Do NOT apply a NetworkPolicy with podSelector: {} there.
 # it isolates every pod and can break DNS/ingress. When those namespaces get
 # default-deny, add a scrape-ingress that selects only the metrics pods and
 # keeps DNS (53/udp+tcp) open for CoreDNS.

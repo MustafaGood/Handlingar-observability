@@ -1,9 +1,9 @@
-# ADR — Observability stack
+# ADR: Observability stack
 
 - **Status:** proposed
 - **Date:** 2026-10-05
-- **Supersedes:** —
-- **Superseded by:** —
+- **Supersedes:** none
+- **Superseded by:** none
 
 The supervisor assigns the ADR number. This file is the T1 draft. It does not
 install anything.

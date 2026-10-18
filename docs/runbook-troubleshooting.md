@@ -7,7 +7,7 @@ goes into a session. The supervisor links the tool. Do not paste secrets.
 `<namespace>` is the namespace named in the mail. On the dashboard, set `env`
 to that same namespace.
 
-## R1 — Site down
+## R1: Site down
 
 Prerequisites: the SiteDown mail has arrived.
 
@@ -32,7 +32,7 @@ How to verify it worked: Site up is `1`, and SiteDown is no longer firing.
 
 How to undo: if the web deployment was scaled down for the test, run `make obs-alert-restore`. If nothing was changed, there is nothing to undo.
 
-## R2 — Sidekiq queue growing
+## R2: Sidekiq queue growing
 
 Prerequisites: the SidekiqNotReady mail has arrived.
 
@@ -63,7 +63,7 @@ kubectl -n <namespace> scale deployment/alaveteli-sidekiq --replicas=1
 
 If nothing was changed, there is nothing to undo. Do not delete the queue.
 
-## R3 — Certificate expiring
+## R3: Certificate expiring
 
 Prerequisites: the CertificateExpiry mail has arrived.
 
@@ -86,7 +86,7 @@ How to verify it worked: days left is above 7, and CertificateExpiry has cleared
 
 How to undo: this check does not change a certificate. Do not delete the Certificate or its Secret to clear the alert.
 
-## R4 — Disk full
+## R4: Disk full
 
 Prerequisites: the DiskFilling mail has arrived.
 
@@ -110,7 +110,7 @@ How to verify it worked: used space is under 85 percent, and DiskFilling has cle
 
 How to undo: if a test file was written to fill the disk, delete that file. Do not delete the Prometheus or Loki volume to silence the alert.
 
-## R5 — Exit test
+## R5: Exit test
 
 Prerequisites: Mailpit is the SMTP target, and the stack is up.
 

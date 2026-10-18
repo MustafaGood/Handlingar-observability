@@ -57,7 +57,7 @@ kubectl -n observability get pvc
 | postgres-exporter-… | 1m | 8Mi | 0 | |
 | redis-exporter-… | 2m | 8Mi | 0 | |
 | memcached-exporter-… | 1m | 7Mi | 0 | |
-| kube-state-metrics-… | (flapping) | — | probes | See note below |
+| kube-state-metrics | (flapping) | n/a | probes | See note below |
 
 **kube-state-metrics:** under default-deny on k3d+Cilium, kubelet probes to the
 pod IP timed out. Values set `hostNetwork: true` so probes hit the host

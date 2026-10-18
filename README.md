@@ -9,10 +9,10 @@ email alerts. The supervisor copies this repository into
 | Piece | State |
 | --- | --- |
 | ADR | proposed (numbers measured; awaiting supervisor accept) |
-| Measured CPU and memory | measured — ~760m / 2592Mi requests, under budget |
+| Measured CPU and memory | measured, about 760m / 2592Mi requests, under budget |
 | Helm values and manifests | installed and verified on sandbox `handlingar-obs` |
 | Dashboards | six JSON files provisioned in live Grafana |
-| Alerts | YAML rules; SiteDown → Mailpit exercised and restored |
+| Alerts | YAML rules; SiteDown to Mailpit exercised and restored |
 | Runbook | written; exit scenario exercised (R5 / SiteDown) |
 | Legacy server plan | written (T6), not a deployment |
 | Sandbox | recreatable via `sandbox/bootstrap.sh` or `bootstrap.ps1` |
@@ -95,7 +95,7 @@ manifests. PersistentVolumeClaims for Prometheus and Loki are kept.
 - Cluster: k3d `handlingar-obs`, K3s v1.32.4, Cilium 1.17.2
 - Dashboards in Grafana: Overview, Alaveteli, Backing services, Cluster, Mail, Logs
 - Datasources: Prometheus, Loki, Alertmanager
-- Exit test: scale `tst/alaveteli-web` → 0 → SiteDown mail in Mailpit → restore
+- Exit test: scale `tst/alaveteli-web` to 0, SiteDown mail in Mailpit, then restore
 - Loki: Alloy tails `/var/log/pods/*/*/*.log` (59 active files); labels
   `namespace`, `pod`, `container`
 - NetworkPolicy: default-deny in `observability` with explicit allows + Cilium
