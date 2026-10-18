@@ -1,0 +1,107 @@
+{
+    "uid":  "mail",
+    "title":  "Mail",
+    "schemaVersion":  39,
+    "version":  1,
+    "refresh":  "30s",
+    "tags":  [
+                 "handlingar"
+             ],
+    "time":  {
+                 "from":  "now-6h",
+                 "to":  "now"
+             },
+    "templating":  {
+                       "list":  [
+                                    {
+                                        "name":  "prometheus",
+                                        "type":  "datasource",
+                                        "query":  "prometheus",
+                                        "refresh":  1,
+                                        "hide":  0
+                                    },
+                                    {
+                                        "name":  "loki",
+                                        "type":  "datasource",
+                                        "query":  "loki",
+                                        "refresh":  1,
+                                        "hide":  0
+                                    },
+                                    {
+                                        "name":  "env",
+                                        "label":  "env",
+                                        "type":  "custom",
+                                        "query":  "handlingar,tst,qat,handlingar-preview",
+                                        "includeAll":  true,
+                                        "allValue":  ".*",
+                                        "multi":  false,
+                                        "current":  {
+                                                        "selected":  true,
+                                                        "text":  "All",
+                                                        "value":  "$__all"
+                                                    }
+                                    }
+                                ]
+                   },
+    "panels":  [
+                   {
+                       "id":  1,
+                       "type":  "stat",
+                       "title":  "Postfix queue (empty until mail runs in the cluster)",
+                       "datasource":  {
+                                          "type":  "prometheus",
+                                          "uid":  "${prometheus}"
+                                      },
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  12,
+                                       "x":  0,
+                                       "y":  0
+                                   },
+                       "targets":  [
+                                       {
+                                           "refId":  "A",
+                                           "expr":  "postfix_queue_messages"
+                                       }
+                                   ],
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "short"
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       }
+                   },
+                   {
+                       "id":  2,
+                       "type":  "timeseries",
+                       "title":  "Mailpit log volume",
+                       "datasource":  {
+                                          "type":  "loki",
+                                          "uid":  "${loki}"
+                                      },
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  12,
+                                       "x":  12,
+                                       "y":  0
+                                   },
+                       "targets":  [
+                                       {
+                                           "refId":  "A",
+                                           "expr":  "count_over_time({namespace=~\"$env\", app=\"mailpit\"}[1h])",
+                                           "queryType":  "range"
+                                       }
+                                   ],
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "short"
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       }
+                   }
+               ]
+}

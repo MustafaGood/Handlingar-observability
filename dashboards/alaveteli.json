@@ -1,0 +1,223 @@
+{
+    "uid":  "alaveteli",
+    "title":  "Alaveteli",
+    "schemaVersion":  39,
+    "version":  1,
+    "refresh":  "30s",
+    "tags":  [
+                 "handlingar"
+             ],
+    "time":  {
+                 "from":  "now-6h",
+                 "to":  "now"
+             },
+    "templating":  {
+                       "list":  [
+                                    {
+                                        "name":  "prometheus",
+                                        "type":  "datasource",
+                                        "query":  "prometheus",
+                                        "refresh":  1,
+                                        "hide":  0
+                                    },
+                                    {
+                                        "name":  "loki",
+                                        "type":  "datasource",
+                                        "query":  "loki",
+                                        "refresh":  1,
+                                        "hide":  0
+                                    },
+                                    {
+                                        "name":  "env",
+                                        "label":  "env",
+                                        "type":  "custom",
+                                        "query":  "handlingar,tst,qat,handlingar-preview",
+                                        "includeAll":  true,
+                                        "allValue":  ".*",
+                                        "multi":  false,
+                                        "current":  {
+                                                        "selected":  true,
+                                                        "text":  "All",
+                                                        "value":  "$__all"
+                                                    }
+                                    }
+                                ]
+                   },
+    "panels":  [
+                   {
+                       "id":  1,
+                       "type":  "timeseries",
+                       "title":  "Requests per second",
+                       "datasource":  {
+                                          "type":  "prometheus",
+                                          "uid":  "${prometheus}"
+                                      },
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  12,
+                                       "x":  0,
+                                       "y":  0
+                                   },
+                       "targets":  [
+                                       {
+                                           "refId":  "A",
+                                           "expr":  "sum by (service) (rate(traefik_service_requests_total{service=~\".*$env.*\"}[5m]))"
+                                       }
+                                   ],
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "reqps"
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       }
+                   },
+                   {
+                       "id":  2,
+                       "type":  "timeseries",
+                       "title":  "5xx rate",
+                       "datasource":  {
+                                          "type":  "prometheus",
+                                          "uid":  "${prometheus}"
+                                      },
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  12,
+                                       "x":  12,
+                                       "y":  0
+                                   },
+                       "targets":  [
+                                       {
+                                           "refId":  "A",
+                                           "expr":  "sum by (service) (rate(traefik_service_requests_total{service=~\".*$env.*\",code=~\"5..\"}[5m]))"
+                                       }
+                                   ],
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "reqps"
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       }
+                   },
+                   {
+                       "id":  3,
+                       "type":  "timeseries",
+                       "title":  "p95 latency",
+                       "datasource":  {
+                                          "type":  "prometheus",
+                                          "uid":  "${prometheus}"
+                                      },
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  12,
+                                       "x":  0,
+                                       "y":  8
+                                   },
+                       "targets":  [
+                                       {
+                                           "refId":  "A",
+                                           "expr":  "histogram_quantile(0.95, sum by (le, service) (rate(traefik_service_request_duration_seconds_bucket{service=~\".*$env.*\"}[5m])))"
+                                       }
+                                   ],
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "s"
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       }
+                   },
+                   {
+                       "id":  4,
+                       "type":  "stat",
+                       "title":  "Sidekiq ready",
+                       "datasource":  {
+                                          "type":  "prometheus",
+                                          "uid":  "${prometheus}"
+                                      },
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  12,
+                                       "x":  12,
+                                       "y":  8
+                                   },
+                       "targets":  [
+                                       {
+                                           "refId":  "A",
+                                           "expr":  "kube_pod_status_ready{namespace=~\"$env\",pod=~\"alaveteli-sidekiq.*\",condition=\"true\"}"
+                                       }
+                                   ],
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "short"
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       }
+                   },
+                   {
+                       "id":  5,
+                       "type":  "logs",
+                       "title":  "Sidekiq errors",
+                       "datasource":  {
+                                          "type":  "loki",
+                                          "uid":  "${loki}"
+                                      },
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  12,
+                                       "x":  0,
+                                       "y":  16
+                                   },
+                       "targets":  [
+                                       {
+                                           "refId":  "A",
+                                           "expr":  "{namespace=~\"$env\", app=\"alaveteli-sidekiq\"} |~ \"(?i)(error|exception)\"",
+                                           "queryType":  "range"
+                                       }
+                                   ],
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "short"
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       }
+                   },
+                   {
+                       "id":  6,
+                       "type":  "timeseries",
+                       "title":  "Puma busy threads",
+                       "datasource":  {
+                                          "type":  "prometheus",
+                                          "uid":  "${prometheus}"
+                                      },
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  12,
+                                       "x":  12,
+                                       "y":  16
+                                   },
+                       "targets":  [
+                                       {
+                                           "refId":  "A",
+                                           "expr":  "puma_busy_threads{namespace=~\"$env\"}"
+                                       }
+                                   ],
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "short"
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       }
+                   }
+               ]
+}

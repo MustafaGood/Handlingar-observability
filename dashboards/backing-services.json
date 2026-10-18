@@ -1,0 +1,280 @@
+{
+    "uid":  "backing-services",
+    "title":  "Backing services",
+    "schemaVersion":  39,
+    "version":  1,
+    "refresh":  "30s",
+    "tags":  [
+                 "handlingar"
+             ],
+    "time":  {
+                 "from":  "now-6h",
+                 "to":  "now"
+             },
+    "templating":  {
+                       "list":  [
+                                    {
+                                        "name":  "prometheus",
+                                        "type":  "datasource",
+                                        "query":  "prometheus",
+                                        "refresh":  1,
+                                        "hide":  0
+                                    },
+                                    {
+                                        "name":  "loki",
+                                        "type":  "datasource",
+                                        "query":  "loki",
+                                        "refresh":  1,
+                                        "hide":  0
+                                    },
+                                    {
+                                        "name":  "env",
+                                        "label":  "env",
+                                        "type":  "custom",
+                                        "query":  "handlingar,tst,qat,handlingar-preview",
+                                        "includeAll":  true,
+                                        "allValue":  ".*",
+                                        "multi":  false,
+                                        "current":  {
+                                                        "selected":  true,
+                                                        "text":  "All",
+                                                        "value":  "$__all"
+                                                    }
+                                    }
+                                ]
+                   },
+    "panels":  [
+                   {
+                       "id":  1,
+                       "type":  "timeseries",
+                       "title":  "Postgres connections",
+                       "datasource":  {
+                                          "type":  "prometheus",
+                                          "uid":  "${prometheus}"
+                                      },
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  8,
+                                       "x":  0,
+                                       "y":  0
+                                   },
+                       "targets":  [
+                                       {
+                                           "refId":  "A",
+                                           "expr":  "pg_stat_activity_count{server=~\".*$env.*\"}"
+                                       }
+                                   ],
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "short"
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       }
+                   },
+                   {
+                       "id":  2,
+                       "type":  "timeseries",
+                       "title":  "Postgres transactions",
+                       "datasource":  {
+                                          "type":  "prometheus",
+                                          "uid":  "${prometheus}"
+                                      },
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  8,
+                                       "x":  8,
+                                       "y":  0
+                                   },
+                       "targets":  [
+                                       {
+                                           "refId":  "A",
+                                           "expr":  "sum by (datname) (rate(pg_stat_database_xact_commit{server=~\".*$env.*\"}[5m]) + rate(pg_stat_database_xact_rollback{server=~\".*$env.*\"}[5m]))"
+                                       }
+                                   ],
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "ops"
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       }
+                   },
+                   {
+                       "id":  3,
+                       "type":  "timeseries",
+                       "title":  "Postgres longest transaction",
+                       "datasource":  {
+                                          "type":  "prometheus",
+                                          "uid":  "${prometheus}"
+                                      },
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  8,
+                                       "x":  16,
+                                       "y":  0
+                                   },
+                       "targets":  [
+                                       {
+                                           "refId":  "A",
+                                           "expr":  "pg_stat_activity_max_tx_duration{server=~\".*$env.*\"}"
+                                       }
+                                   ],
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "s"
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       }
+                   },
+                   {
+                       "id":  4,
+                       "type":  "stat",
+                       "title":  "Postgres database size",
+                       "datasource":  {
+                                          "type":  "prometheus",
+                                          "uid":  "${prometheus}"
+                                      },
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  8,
+                                       "x":  0,
+                                       "y":  8
+                                   },
+                       "targets":  [
+                                       {
+                                           "refId":  "A",
+                                           "expr":  "pg_database_size_bytes{server=~\".*$env.*\"}"
+                                       }
+                                   ],
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "bytes"
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       }
+                   },
+                   {
+                       "id":  5,
+                       "type":  "timeseries",
+                       "title":  "Redis memory",
+                       "datasource":  {
+                                          "type":  "prometheus",
+                                          "uid":  "${prometheus}"
+                                      },
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  8,
+                                       "x":  8,
+                                       "y":  8
+                                   },
+                       "targets":  [
+                                       {
+                                           "refId":  "A",
+                                           "expr":  "redis_memory_used_bytes{env=~\"$env\"}"
+                                       }
+                                   ],
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "bytes"
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       }
+                   },
+                   {
+                       "id":  6,
+                       "type":  "stat",
+                       "title":  "Redis keys",
+                       "datasource":  {
+                                          "type":  "prometheus",
+                                          "uid":  "${prometheus}"
+                                      },
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  8,
+                                       "x":  16,
+                                       "y":  8
+                                   },
+                       "targets":  [
+                                       {
+                                           "refId":  "A",
+                                           "expr":  "sum by (env) (redis_db_keys{env=~\"$env\"})"
+                                       }
+                                   ],
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "short"
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       }
+                   },
+                   {
+                       "id":  7,
+                       "type":  "timeseries",
+                       "title":  "Redis evictions",
+                       "datasource":  {
+                                          "type":  "prometheus",
+                                          "uid":  "${prometheus}"
+                                      },
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  12,
+                                       "x":  0,
+                                       "y":  16
+                                   },
+                       "targets":  [
+                                       {
+                                           "refId":  "A",
+                                           "expr":  "rate(redis_evicted_keys_total{env=~\"$env\"}[5m])"
+                                       }
+                                   ],
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "ops"
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       }
+                   },
+                   {
+                       "id":  8,
+                       "type":  "timeseries",
+                       "title":  "Memcached hit rate",
+                       "datasource":  {
+                                          "type":  "prometheus",
+                                          "uid":  "${prometheus}"
+                                      },
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  12,
+                                       "x":  12,
+                                       "y":  16
+                                   },
+                       "targets":  [
+                                       {
+                                           "refId":  "A",
+                                           "expr":  "sum(rate(memcached_commands_total{command=\"get\",status=\"hit\",env=~\"$env\"}[5m])) / sum(rate(memcached_commands_total{command=\"get\",env=~\"$env\"}[5m]))"
+                                       }
+                                   ],
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "percentunit"
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       }
+                   }
+               ]
+}

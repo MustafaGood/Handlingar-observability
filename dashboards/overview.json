@@ -1,0 +1,280 @@
+{
+    "uid":  "overview",
+    "title":  "Overview",
+    "schemaVersion":  39,
+    "version":  1,
+    "refresh":  "30s",
+    "tags":  [
+                 "handlingar"
+             ],
+    "time":  {
+                 "from":  "now-6h",
+                 "to":  "now"
+             },
+    "templating":  {
+                       "list":  [
+                                    {
+                                        "name":  "prometheus",
+                                        "type":  "datasource",
+                                        "query":  "prometheus",
+                                        "refresh":  1,
+                                        "hide":  0
+                                    },
+                                    {
+                                        "name":  "loki",
+                                        "type":  "datasource",
+                                        "query":  "loki",
+                                        "refresh":  1,
+                                        "hide":  0
+                                    },
+                                    {
+                                        "name":  "env",
+                                        "label":  "env",
+                                        "type":  "custom",
+                                        "query":  "handlingar,tst,qat,handlingar-preview",
+                                        "includeAll":  true,
+                                        "allValue":  ".*",
+                                        "multi":  false,
+                                        "current":  {
+                                                        "selected":  true,
+                                                        "text":  "All",
+                                                        "value":  "$__all"
+                                                    }
+                                    }
+                                ]
+                   },
+    "panels":  [
+                   {
+                       "id":  1,
+                       "type":  "stat",
+                       "title":  "Site up",
+                       "datasource":  {
+                                          "type":  "prometheus",
+                                          "uid":  "${prometheus}"
+                                      },
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  6,
+                                       "x":  0,
+                                       "y":  0
+                                   },
+                       "targets":  [
+                                       {
+                                           "refId":  "A",
+                                           "expr":  "probe_success{env=~\"$env\"}"
+                                       }
+                                   ],
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "short"
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       }
+                   },
+                   {
+                       "id":  2,
+                       "type":  "timeseries",
+                       "title":  "Request rate",
+                       "datasource":  {
+                                          "type":  "prometheus",
+                                          "uid":  "${prometheus}"
+                                      },
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  6,
+                                       "x":  6,
+                                       "y":  0
+                                   },
+                       "targets":  [
+                                       {
+                                           "refId":  "A",
+                                           "expr":  "sum(rate(traefik_service_requests_total{service=~\".*$env.*\"}[5m]))"
+                                       }
+                                   ],
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "reqps"
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       }
+                   },
+                   {
+                       "id":  3,
+                       "type":  "timeseries",
+                       "title":  "Error rate 5xx",
+                       "datasource":  {
+                                          "type":  "prometheus",
+                                          "uid":  "${prometheus}"
+                                      },
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  6,
+                                       "x":  12,
+                                       "y":  0
+                                   },
+                       "targets":  [
+                                       {
+                                           "refId":  "A",
+                                           "expr":  "sum(rate(traefik_service_requests_total{service=~\".*$env.*\",code=~\"5..\"}[5m])) / sum(rate(traefik_service_requests_total{service=~\".*$env.*\"}[5m]))"
+                                       }
+                                   ],
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "percentunit"
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       }
+                   },
+                   {
+                       "id":  4,
+                       "type":  "timeseries",
+                       "title":  "p95 latency",
+                       "datasource":  {
+                                          "type":  "prometheus",
+                                          "uid":  "${prometheus}"
+                                      },
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  6,
+                                       "x":  18,
+                                       "y":  0
+                                   },
+                       "targets":  [
+                                       {
+                                           "refId":  "A",
+                                           "expr":  "histogram_quantile(0.95, sum by (le) (rate(traefik_service_request_duration_seconds_bucket{service=~\".*$env.*\"}[5m])))"
+                                       }
+                                   ],
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "s"
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       }
+                   },
+                   {
+                       "id":  5,
+                       "type":  "stat",
+                       "title":  "Certificate days left",
+                       "datasource":  {
+                                          "type":  "prometheus",
+                                          "uid":  "${prometheus}"
+                                      },
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  8,
+                                       "x":  0,
+                                       "y":  8
+                                   },
+                       "targets":  [
+                                       {
+                                           "refId":  "A",
+                                           "expr":  "(certmanager_certificate_expiration_timestamp_seconds - time()) / 86400"
+                                       }
+                                   ],
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "d"
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       }
+                   },
+                   {
+                       "id":  6,
+                       "type":  "timeseries",
+                       "title":  "Disk used",
+                       "datasource":  {
+                                          "type":  "prometheus",
+                                          "uid":  "${prometheus}"
+                                      },
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  8,
+                                       "x":  8,
+                                       "y":  8
+                                   },
+                       "targets":  [
+                                       {
+                                           "refId":  "A",
+                                           "expr":  "1 - (node_filesystem_avail_bytes{fstype!~\"tmpfs|overlay\"} / node_filesystem_size_bytes{fstype!~\"tmpfs|overlay\"})"
+                                       }
+                                   ],
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "percentunit"
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       }
+                   },
+                   {
+                       "id":  7,
+                       "type":  "timeseries",
+                       "title":  "Memory used per node",
+                       "datasource":  {
+                                          "type":  "prometheus",
+                                          "uid":  "${prometheus}"
+                                      },
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  8,
+                                       "x":  16,
+                                       "y":  8
+                                   },
+                       "targets":  [
+                                       {
+                                           "refId":  "A",
+                                           "expr":  "1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)"
+                                       }
+                                   ],
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "percentunit"
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       }
+                   },
+                   {
+                       "id":  8,
+                       "type":  "table",
+                       "title":  "Firing alerts",
+                       "datasource":  {
+                                          "type":  "prometheus",
+                                          "uid":  "${prometheus}"
+                                      },
+                       "gridPos":  {
+                                       "h":  8,
+                                       "w":  24,
+                                       "x":  0,
+                                       "y":  16
+                                   },
+                       "targets":  [
+                                       {
+                                           "refId":  "A",
+                                           "expr":  "ALERTS{alertstate=\"firing\"}"
+                                       }
+                                   ],
+                       "fieldConfig":  {
+                                           "defaults":  {
+                                                            "unit":  "short"
+                                                        },
+                                           "overrides":  [
+
+                                                         ]
+                                       }
+                   }
+               ]
+}
