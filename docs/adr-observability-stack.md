@@ -1,11 +1,13 @@
 # ADR: Observability stack
 
-- **Status:** proposed
+- **Status:** ready for acceptance
 - **Date:** 2026-10-05
+- **Ready:** 2026-10-18
 - **Supersedes:** none
 - **Superseded by:** none
 
-The supervisor assigns the ADR number. This file is the T1 draft. It does not
+The supervisor assigns the ADR number and changes **Status** to `accepted`
+(or `accepted with changes`). This file is the T1 decision record. It does not
 install anything.
 
 ## Context
@@ -184,13 +186,28 @@ ceiling to aim at, not a measurement.
 ## Measurement
 
 Live CPU, memory, and disk are recorded in `docs/resource-footprint.md`
-(2026-10-18 sandbox). The request sum stayed under budget. This ADR stays
-**proposed** until the supervisor accepts the decision.
+(2026-10-18 sandbox). The request sum stayed under budget.
+
+## Acceptance (supervisor)
+
+Flip **Status** at the top of this file to `accepted` when you agree. Checklist:
+
+- [ ] Chart set and pinned versions in the Decision table
+- [ ] Slim kube-prometheus-stack profile (what is off and why)
+- [ ] Request budget (~1.5 vCPU / 3 GB) and footprint doc
+- [ ] Scrape list (kube-state-metrics, node-exporter, kubelet, Traefik,
+      cert-manager, CoreDNS, Argo CD, blackbox, DB exporters)
+- [ ] Logs via Alloy + Loki; alerts via PrometheusRule + email
+- [ ] Secrets by name only (ExternalSecret templates, no values in git)
+- [ ] Exit check: SiteDown in `tst` → Mailpit, then restore
+
+Until that happens, Status stays `ready for acceptance`.
 
 ## Consequences
 
-- T2 may start only after the supervisor accepts this ADR, or accepts it with
-  named changes.
+- Platform install (charts, netpol, alerts) was verified in the sandbox while
+  this ADR was still open. Production/cluster rollout still waits on supervisor
+  acceptance (or acceptance with named changes).
 - Argo CD gets one application per chart in the table above, except Grafana,
   which rides inside `kube-prometheus-stack`. Chart name, repository URL, and
   version are the pins in that table.

@@ -57,12 +57,12 @@ kubectl -n observability get pvc
 | postgres-exporter-… | 1m | 8Mi | 0 | |
 | redis-exporter-… | 2m | 8Mi | 0 | |
 | memcached-exporter-… | 1m | 7Mi | 0 | |
-| kube-state-metrics | (flapping) | n/a | probes | See note below |
+| kube-state-metrics | 2m | 28Mi | 0 | hostNetwork (probes) |
 
 **kube-state-metrics:** under default-deny on k3d+Cilium, kubelet probes to the
 pod IP timed out. Values set `hostNetwork: true` so probes hit the host
-namespace. Re-run `helm upgrade` after that change if the pod is still
-CrashLoopBackOff.
+namespace. Prometheus scrapes it via CiliumNetworkPolicy
+`allow-prometheus-scrape-host` (host entity), not pod CIDR ipBlock.
 
 ## Disk
 

@@ -106,7 +106,8 @@ spec:
     - to:
         - podSelector: {}
 ---
-# Prometheus scrapes cluster-wide (kubelet, CoreDNS, Traefik, app exporters, …).
+# Prometheus scrapes cluster pods (CoreDNS, Traefik, cert-manager, Argo CD, …).
+# Cilium does not treat pod CIDR ipBlocks as pod traffic, so use namespaceSelector.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -120,51 +121,88 @@ spec:
     - Egress
   egress:
     - to:
-        - ipBlock:
-            cidr: 10.0.0.0/8
-        - ipBlock:
-            cidr: 172.16.0.0/12
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
       ports:
+        - protocol: TCP
+          port: 9153
         - protocol: TCP
           port: 443
         - protocol: TCP
           port: 6443
         - protocol: TCP
           port: 10250
-        - protocol: TCP
-          port: 9153
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: traefik
+      ports:
         - protocol: TCP
           port: 9100
         - protocol: TCP
           port: 8080
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: cert-manager
+      ports:
         - protocol: TCP
-          port: 8081
+          port: 9402
+        - protocol: TCP
+          port: 9403
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: argocd
+      ports:
         - protocol: TCP
           port: 8082
         - protocol: TCP
           port: 8083
         - protocol: TCP
           port: 8084
-        - protocol: TCP
-          port: 8443
-        - protocol: TCP
-          port: 9001
-        - protocol: TCP
-          port: 9090
-        - protocol: TCP
-          port: 9093
-        - protocol: TCP
-          port: 9115
-        - protocol: TCP
-          port: 9121
-        - protocol: TCP
-          port: 9150
-        - protocol: TCP
-          port: 9187
-        - protocol: TCP
-          port: 9402
+    - to:
+        - namespaceSelector:
+            matchExpressions:
+              - key: kubernetes.io/metadata.name
+                operator: In
+                values:
+                  - handlingar
+                  - tst
+                  - qat
+                  - handlingar-preview
+      ports:
         - protocol: TCP
           port: 3000
+        - protocol: TCP
+          port: 9100
+---
+# Host-network scrapes (kubelet, apiserver, hostNetwork kube-state-metrics).
+# Kubernetes NetworkPolicy ipBlock alone is not enough under Cilium.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-prometheus-scrape-host
+  namespace: observability
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: prometheus
+  egress:
+    - toEntities:
+        - host
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "10250"
+              protocol: TCP
+            - port: "6443"
+              protocol: TCP
+            - port: "443"
+              protocol: TCP
+            - port: "8080"
+              protocol: TCP
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
