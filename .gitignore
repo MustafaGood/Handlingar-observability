@@ -1,0 +1,10 @@
+.DS_Store
+*.swp
+*.tmp
+.env
+.env.*
+*.log
+.idea/
+.vscode/
+*.pyc
+__pycache__/
