@@ -1,0 +1,46 @@
+fullnameOverride: redis-exporter
+
+redisAddress: ""
+
+env:
+  - name: REDIS_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: redis-exporter
+        key: password
+
+serviceMonitor:
+  enabled: true
+  multipleTarget: true
+  telemetryPath: /scrape
+  interval: 30s
+  targets:
+    - url: redis://redis.handlingar.svc.cluster.local:6379
+      name: handlingar
+      additionalMetricsRelabels:
+        env: handlingar
+    - url: redis://redis.tst.svc.cluster.local:6379
+      name: tst
+      additionalMetricsRelabels:
+        env: tst
+    - url: redis://redis.qat.svc.cluster.local:6379
+      name: qat
+      additionalMetricsRelabels:
+        env: qat
+
+resources:
+  requests:
+    cpu: 20m
+    memory: 64Mi
+  limits:
+    cpu: 100m
+    memory: 128Mi
+
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL

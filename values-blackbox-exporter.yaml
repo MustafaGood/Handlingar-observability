@@ -1,0 +1,45 @@
+fullnameOverride: blackbox-exporter
+releaseLabel: true
+
+serviceMonitor:
+  enabled: true
+  selfMonitor:
+    enabled: true
+  defaults:
+    interval: 30s
+    scrapeTimeout: 10s
+    module: http_2xx
+  targets:
+    - name: handlingar
+      url: https://dev.nonprod.handlingar.se/
+      additionalMetricsRelabels:
+        env: handlingar
+    - name: tst
+      url: https://tst.nonprod.handlingar.se/
+      additionalMetricsRelabels:
+        env: tst
+    - name: qat
+      url: https://staging.handlingar.se/
+      additionalMetricsRelabels:
+        env: qat
+
+resources:
+  requests:
+    cpu: 20m
+    memory: 64Mi
+  limits:
+    cpu: 100m
+    memory: 128Mi
+
+securityContext:
+  runAsUser: 1000
+  runAsGroup: 1000
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+
+networkPolicy:
+  enabled: false
