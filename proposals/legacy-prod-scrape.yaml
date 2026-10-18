@@ -1,0 +1,113 @@
+# Plan only. Not included in kustomization.yaml.
+# Replace legacy-prod.invalid before anyone applies this file.
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: legacy-prod-node
+  namespace: observability
+  labels:
+    app.kubernetes.io/name: legacy-prod-node
+spec:
+  scheme: HTTPS
+  tlsConfig:
+    serverName: legacy-prod.invalid
+    ca:
+      secret:
+        name: legacy-prod-scrape
+        key: ca.crt
+  basicAuth:
+    username:
+      name: legacy-prod-scrape
+      key: username
+    password:
+      name: legacy-prod-scrape
+      key: password
+  staticConfigs:
+    - labels:
+        env: legacy-prod
+      targets:
+        - legacy-prod.invalid:9100
+---
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: legacy-prod-postfix
+  namespace: observability
+  labels:
+    app.kubernetes.io/name: legacy-prod-postfix
+spec:
+  scheme: HTTPS
+  tlsConfig:
+    serverName: legacy-prod.invalid
+    ca:
+      secret:
+        name: legacy-prod-scrape
+        key: ca.crt
+  basicAuth:
+    username:
+      name: legacy-prod-scrape
+      key: username
+    password:
+      name: legacy-prod-scrape
+      key: password
+  staticConfigs:
+    - labels:
+        env: legacy-prod
+      targets:
+        - legacy-prod.invalid:9154
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-prometheus-legacy-prod-egress
+  namespace: observability
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: prometheus
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: ANY
+          rules:
+            dns:
+              - matchName: legacy-prod.invalid
+    - toFQDNs:
+        - matchName: legacy-prod.invalid
+      toPorts:
+        - ports:
+            - port: "9100"
+              protocol: TCP
+            - port: "9154"
+              protocol: TCP
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: legacy-prod-scrape
+  namespace: observability
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    name: cluster-secret-store
+    kind: ClusterSecretStore
+  target:
+    name: legacy-prod-scrape
+  data:
+    - secretKey: username
+      remoteRef:
+        key: legacy-prod-scrape
+        property: username
+    - secretKey: password
+      remoteRef:
+        key: legacy-prod-scrape
+        property: password
+    - secretKey: ca.crt
+      remoteRef:
+        key: legacy-prod-scrape
+        property: ca.crt
